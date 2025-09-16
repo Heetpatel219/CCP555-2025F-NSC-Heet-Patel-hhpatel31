@@ -1,2 +1,3 @@
 # fragments-ui
-UI for testing fragments microservice
+
+Completed Lab 2:
