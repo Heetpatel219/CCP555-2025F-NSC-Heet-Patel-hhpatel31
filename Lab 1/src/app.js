@@ -40,7 +40,7 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, _next) => {
+app.use((err, req, res, _next) => { // eslint-disable-line no-unused-vars
   const status = err.status || 500;
   const message = err.message || 'unable to process request';
   if (status > 499) logger.error({ err }, 'Error processing request');
