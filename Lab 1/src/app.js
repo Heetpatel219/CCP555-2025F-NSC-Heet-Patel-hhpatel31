@@ -1,4 +1,3 @@
-// src/app.js
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -24,14 +23,18 @@ app.use(passport.initialize());
 
 // Health endpoint
 app.get('/', (req, res) => {
-  res.json(createSuccessResponse({
-    author,
-    version,
-    githubUrl: 'http://localhost:8080/CCP555-2025F-NSC-Heet-Patel-hhpatel31',
-  }));
+  res.set('Cache-Control', 'no-cache'); // <-- add this line
+  res.json(
+    createSuccessResponse({
+      author,
+      version,
+      githubUrl: 'http://localhost:8080/CCP555-2025F-NSC-Heet-Patel-hhpatel31',
+    })
+  );
 });
 
-// Mount other routes
+
+// Mount routes
 app.use('/', require('./routes'));
 
 // 404 handler

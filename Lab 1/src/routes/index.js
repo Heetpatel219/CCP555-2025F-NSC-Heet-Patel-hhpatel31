@@ -1,11 +1,10 @@
-// src/routes/index.js
 const express = require('express');
+const { authenticate } = require('../auth');
+
 const router = express.Router();
-const { authenticate } = require('../auth'); // your auth middleware
 
-/**
- * Protect all /v1 routes so you must be authenticated
- */
-router.use('/v1', authenticate(), require('./api')); // mount API routes
+// Mount API routes under /v1 and protect them
+router.use('/v1', authenticate(), require('./api'));
 
+// Export router for app.js
 module.exports = router;
