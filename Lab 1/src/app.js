@@ -1,3 +1,8 @@
+require('dotenv').config();
+
+console.log("ENV TEST:", process.env.AUTH_KEY, process.env.AUTH_SECRET);
+
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
