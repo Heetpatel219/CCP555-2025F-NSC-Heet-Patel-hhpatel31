@@ -1,17 +1,11 @@
-// src/logger.js
+const pino = require('pino');
 
-// Use `info` as our default log level if not specified
-const options = { level: process.env.LOG_LEVEL || 'info' };
+const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  transport:
+    process.env.NODE_ENV !== 'production'
+      ? { target: 'pino-pretty', options: { colorize: true } }
+      : undefined,
+});
 
-// If we're doing `debug` logging, make the logs easier to read
-if (options.level === 'debug') {
-  options.transport = {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-    },
-  };
-}
-
-// Create and export a Pino Logger instance
-module.exports = require('pino')(options);
+module.exports = logger;

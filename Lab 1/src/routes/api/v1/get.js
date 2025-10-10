@@ -1,5 +1,5 @@
-const Fragment = require('../../model/fragment');
-const { createSuccessResponse, createErrorResponse } = require('../../response');
+const Fragment = require('../../../model/fragment');
+const { createSuccessResponse, createErrorResponse } = require('../../../response');
 
 /**
  * Get a list of fragments for the current user
@@ -7,14 +7,16 @@ const { createSuccessResponse, createErrorResponse } = require('../../response')
 module.exports = async (req, res) => {
   try {
     // Get all fragments for the authenticated user
-    const fragments = await Fragment.list(req.user);
+    const fragments = await Fragment.byUser(req.user);
+
+    // Return just the fragment IDs for security/privacy
+    const fragmentIds = fragments.map(fragment => fragment.id);
 
     res.status(200).json(createSuccessResponse({
-      fragments: fragments,
+      fragments: fragmentIds,
     }));
   } catch (error) {
     console.error('Error retrieving fragments:', error);
     res.status(500).json(createErrorResponse(500, 'Internal server error'));
   }
 };
-

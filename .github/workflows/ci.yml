@@ -33,3 +33,25 @@ jobs:
       - name: Run ESLint
         run: npm run lint
         working-directory: "Lab 1"
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: "Lab 1/package-lock.json"
+
+      - name: Install node dependencies
+        run: npm ci
+        working-directory: "Lab 1"
+
+      - name: Run Unit Tests
+        run: npm test
+        working-directory: "Lab 1"

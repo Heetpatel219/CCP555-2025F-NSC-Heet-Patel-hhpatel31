@@ -1,27 +1,34 @@
-// src/auth/basic-auth.js
- 
-// Configure HTTP Basic Auth strategy for Passport, see:
-// [URL documentation]
-const logger = require('../logger');
-const auth = require('http-auth');
+const fs = require('fs');
+const path = require('path');
 const passport = require('passport');
-const authPassport = require('http-auth-passport');
- 
-// We expect HTPASSWD_FILE to be defined.
-if (!process.env.HTPASSWD_FILE) {
-  throw new Error('missing expected env var: HTPASSWD_FILE');
-}
- 
-// Log that we're using Basic Auth
-logger.info('Using HTTP Basic Auth for auth');
- 
-module.exports.strategy = () =>
-  // For our Passport authentication strategy, we'll look for a
-  // username/password pair in the Authorization header.
-  authPassport(
-    auth.basic({
-      file: process.env.HTPASSWD_FILE,
-    })
-  );
- 
-module.exports.authenticate = () => passport.authenticate('http', { session: false });
+const { BasicStrategy } = require('passport-http');
+const apr1Md5 = require('apache-md5'); // npm install apache-md5
+const authorize = require('./auth-middleware');
+
+const htpasswdFile = process.env.HTPASSWD_FILE || 'tests/.htpasswd';
+
+passport.use(
+  new BasicStrategy((username, password, done) => {
+    try {
+      const fullPath = path.resolve(htpasswdFile);
+      if (!fs.existsSync(fullPath)) return done(null, false);
+
+      const lines = fs.readFileSync(fullPath, 'utf-8').split('\n');
+      const userLine = lines.find(line => line.startsWith(username + ':'));
+      if (!userLine) return done(null, false);
+
+      const storedHash = userLine.split(':')[1].trim();
+
+      // Compare password using apache-md5
+      if (apr1Md5(password, storedHash) === storedHash) {
+        return done(null, username);
+      } else {
+        return done(null, false);
+      }
+    } catch (err) {
+      return done(err);
+    }
+  })
+);
+
+module.exports.authenticate = () => authorize('basic');

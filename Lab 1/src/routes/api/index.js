@@ -1,7 +1,9 @@
-// src/routes/api/index.js
 const express = require('express');
 const router = express.Router();
 
-router.get('/fragments', require('./get'));
+// Fragment routes
+router.use('/fragments', require('./fragments'));
 
 module.exports = router;
+
+

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fragments UI - Basic Auth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .fragment {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            background: #e6ffe6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .auth-section {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fragments API Client - Basic Auth Test</h1>
+        
+        <div class="auth-section">
+            <h3>Authentication</h3>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter username" value="testuser">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" placeholder="Enter password" value="password">
+            </div>
+            <button onclick="authenticate()">Login</button>
+        </div>
+
+        <div id="main-content" style="display: none;">
+            <h3>Create New Fragment</h3>
+            <div class="form-group">
+                <label for="fragment-text">Fragment Text:</label>
+                <textarea id="fragment-text" rows="4" placeholder="Enter your text fragment"></textarea>
+            </div>
+            <button onclick="createFragment()">Create Fragment</button>
+
+            <h3>Your Fragments</h3>
+            <button onclick="loadFragments()">Load Fragments</button>
+            <div id="fragments-list"></div>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://54.234.55.101:8080';
+        let authToken = null;
+
+        // Utility functions
+        function showMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messagesDiv.appendChild(messageDiv);
+            
+            // Remove message after 5 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Authentication
+        async function authenticate() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showMessage('Please enter both username and password', 'error');
+                return;
+            }
+            
+            try {
+                // Create basic auth header
+                const credentials = btoa(`${username}:${password}`);
+                
+                // Test authentication by calling the fragments endpoint
+                const response = await fetch(`${API_BASE_URL}/v1/fragments`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${credentials}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    authToken = credentials;
+                    document.getElementById('main-content').style.display = 'block';
+                    showMessage('Authentication successful!', 'success');
+                    loadFragments();
+                } else {
+                    showMessage('Authentication failed. Please check your credentials.', 'error');
+                }
+            } catch (error) {
+                showMessage('Error connecting to server: ' + error.message, 'error');
+            }
+        }
+
+        // Create fragment
+        async function createFragment() {
+            const text = document.getElementById('fragment-text').value;
+            
+            if (!text.trim()) {
+                showMessage('Please enter some text for the fragment', 'error');
+                return;
+            }
+            
+            if (!authToken) {
+                showMessage('Please authenticate first', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/fragments`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Basic ${authToken}`,
+                        'Content-Type': 'text/plain'
+                    },
+                    body: text
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showMessage('Fragment created successfully!', 'success');
+                    document.getElementById('fragment-text').value = '';
+                    loadFragments();
+                } else {
+                    const error = await response.json();
+                    showMessage('Error creating fragment: ' + error.error.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating fragment: ' + error.message, 'error');
+            }
+        }
+
+        // Load fragments
+        async function loadFragments() {
+            if (!authToken) {
+                showMessage('Please authenticate first', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/fragments`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    displayFragments(result.fragments);
+                } else {
+                    const error = await response.json();
+                    showMessage('Error loading fragments: ' + error.error.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading fragments: ' + error.message, 'error');
+            }
+        }
+
+        // Display fragments
+        function displayFragments(fragments) {
+            const fragmentsList = document.getElementById('fragments-list');
+            fragmentsList.innerHTML = '';
+            
+            if (fragments.length === 0) {
+                fragmentsList.innerHTML = '<p>No fragments found. Create your first fragment above!</p>';
+                return;
+            }
+            
+            fragments.forEach(fragmentId => {
+                const fragmentDiv = document.createElement('div');
+                fragmentDiv.className = 'fragment';
+                fragmentDiv.innerHTML = `
+                    <strong>Fragment ID:</strong> ${fragmentId}<br>
+                    <button onclick="viewFragment('${fragmentId}')">View Fragment</button>
+                `;
+                fragmentsList.appendChild(fragmentDiv);
+            });
+        }
+
+        // View individual fragment
+        async function viewFragment(fragmentId) {
+            if (!authToken) {
+                showMessage('Please authenticate first', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/v1/fragments/${fragmentId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Basic ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`Fragment Content:\n\n${result.fragment.data}`);
+                } else {
+                    const error = await response.json();
+                    showMessage('Error loading fragment: ' + error.error.message, 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading fragment: ' + error.message, 'error');
+            }
+        }
+
+        // Test connection on page load
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/`);
+                if (response.ok) {
+                    const result = await response.json();
+                    showMessage(`Connected to server: ${result.author} - ${result.version}`, 'success');
+                }
+            } catch (error) {
+                showMessage('Cannot connect to server. Please check if the server is running.', 'error');
+            }
+        };
+    </script>
+</body>
+</html>
