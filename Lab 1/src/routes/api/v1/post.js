@@ -37,7 +37,8 @@ module.exports = async (req, res) => {
         },
       }));
     } catch (error) {
-      console.error('Error creating fragment:', error);
+      const logger = require('../../../logger');
+      logger.error({ error }, 'Error creating fragment');
       res.status(500).json(createErrorResponse(500, 'Internal server error'));
     }
   } else {

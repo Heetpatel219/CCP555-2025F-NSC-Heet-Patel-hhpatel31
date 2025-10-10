@@ -16,7 +16,8 @@ module.exports = async (req, res) => {
       fragments: fragmentIds,
     }));
   } catch (error) {
-    console.error('Error retrieving fragments:', error);
+    const logger = require('../../../logger');
+    logger.error({ error }, 'Error retrieving fragments');
     res.status(500).json(createErrorResponse(500, 'Internal server error'));
   }
 };
