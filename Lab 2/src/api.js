@@ -1,5 +1,7 @@
 // src/api.js
-const apiUrl = process.env.API_URL || 'http://YOUR_EC2_IP:8080';
+import { config } from '../config.js';
+
+const apiUrl = config.API_URL || 'http://localhost:8080';
 
 export async function getUserFragments(user) {
   console.log('Requesting user fragments data...');

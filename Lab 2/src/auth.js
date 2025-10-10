@@ -1,41 +1,59 @@
 // src/auth.js
 import { UserManager } from 'oidc-client-ts';
+import { config } from '../config.js';
 
-const poolId   = (process.env.AWS_COGNITO_POOL_ID || '').trim();
-const clientId = (process.env.AWS_COGNITO_CLIENT_ID || '').trim();
-const domain   = (process.env.AWS_COGNITO_DOMAIN_URL || '').replace(/\/+$/, '');
-const redirect = (process.env.OAUTH_SIGN_IN_REDIRECT_URL || 'http://localhost:1234').replace(/\/+$/, '');
+const poolId   = (config.AWS_COGNITO_POOL_ID || '').trim();
+const clientId = (config.AWS_COGNITO_CLIENT_ID || '').trim();
+const domain   = (config.AWS_COGNITO_DOMAIN_URL || '').replace(/\/+$/, '');
+const redirect = (config.OAUTH_SIGN_IN_REDIRECT_URL || 'http://localhost:1234').replace(/\/+$/, '');
 
-if (!poolId || !clientId || !domain) {
-  throw new Error('Missing env: AWS_COGNITO_POOL_ID / AWS_COGNITO_CLIENT_ID / AWS_COGNITO_DOMAIN_URL');
-}
+// Force mock authentication for testing (set to true to disable real Cognito)
+const useMockAuth = true; // Set to true to use mock auth, false for real Cognito
 
-const region = poolId.split('_')[0];
-const issuer = `https://cognito-idp.${region}.amazonaws.com/${poolId}`;
-
-// Seed full metadata to avoid discovery (Learner Lab safe)
-const metadataSeed = {
-  issuer,
-  authorization_endpoint: `${domain}/oauth2/authorize`,
-  token_endpoint:         `${domain}/oauth2/token`,
-  userinfo_endpoint:      `${domain}/oauth2/userInfo`,
-  revocation_endpoint:    `${domain}/oauth2/revoke`,
-  end_session_endpoint:   `${domain}/logout`,
-  jwks_uri:               `${issuer}/.well-known/jwks.json`,
+// Mock user for testing
+const mockUser = {
+  username: 'Heet',
+  email: 'heet@gmail.com',
+  idToken: 'mock-jwt-token-for-testing',
+  accessToken: 'mock-access-token',
+  authorizationHeaders: function(type = 'application/json') {
+    return {
+      'Content-Type': type,
+      Authorization: 'Bearer mock-jwt-token-for-testing',
+    };
+  },
 };
 
-console.log('OIDC (no-discovery) config', { issuer, domain, clientId, redirect });
+// Real Cognito setup
+let userManager = null;
+if (!useMockAuth) {
+  const region = poolId.split('_')[0];
+  const issuer = `https://cognito-idp.${region}.amazonaws.com/${poolId}`;
 
-export const userManager = new UserManager({
-  authority: issuer,
-  metadataSeed,
-  client_id: clientId,
-  redirect_uri: redirect,
-  response_type: 'code',
-  scope: 'openid email profile',
-  revokeTokenTypes: ['refresh_token'],
-  automaticSilentRenew: false,
-});
+  // Seed full metadata to avoid discovery (Learner Lab safe)
+  const metadataSeed = {
+    issuer,
+    authorization_endpoint: `${domain}/oauth2/authorize`,
+    token_endpoint:         `${domain}/oauth2/token`,
+    userinfo_endpoint:      `${domain}/oauth2/userInfo`,
+    revocation_endpoint:    `${domain}/oauth2/revoke`,
+    end_session_endpoint:   `${domain}/logout`,
+    jwks_uri:               `${issuer}/.well-known/jwks.json`,
+  };
+
+  console.log('OIDC (no-discovery) config', { issuer, domain, clientId, redirect });
+
+  userManager = new UserManager({
+    authority: issuer,
+    metadataSeed,
+    client_id: clientId,
+    redirect_uri: redirect,
+    response_type: 'code',
+    scope: 'openid email profile',
+    revokeTokenTypes: ['refresh_token'],
+    automaticSilentRenew: false,
+  });
+}
 
 function formatUser(user) {
   return {
@@ -51,19 +69,51 @@ function formatUser(user) {
 }
 
 export function signIn() {
-  return userManager.signinRedirect();
+  if (useMockAuth) {
+    console.log('Using mock authentication for testing');
+    // Simulate login by storing user in sessionStorage
+    sessionStorage.setItem('mockUser', JSON.stringify(mockUser));
+    // Reload page to trigger getUser()
+    window.location.reload();
+  } else {
+    return userManager.signinRedirect();
+  }
 }
 
 export function signOut() {
-  return userManager.signoutRedirect();
+  if (useMockAuth) {
+    // Simulate logout by removing user from sessionStorage
+    sessionStorage.removeItem('mockUser');
+    // Reload page to trigger getUser()
+    window.location.reload();
+  } else {
+    return userManager.signoutRedirect();
+  }
 }
 
 export async function getUser() {
-  if (window.location.search.includes('code=')) {
-    const user = await userManager.signinCallback();
-    window.history.replaceState({}, document.title, window.location.pathname);
-    return formatUser(user);
+  if (useMockAuth) {
+    // Check if user is in sessionStorage
+    const storedUser = sessionStorage.getItem('mockUser');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      // Ensure authorizationHeaders is a function
+      user.authorizationHeaders = function(type = 'application/json') {
+        return {
+          'Content-Type': type,
+          Authorization: 'Bearer mock-jwt-token-for-testing',
+        };
+      };
+      return user;
+    }
+    return null;
+  } else {
+    if (window.location.search.includes('code=')) {
+      const user = await userManager.signinCallback();
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return formatUser(user);
+    }
+    const user = await userManager.getUser();
+    return user ? formatUser(user) : null;
   }
-  const user = await userManager.getUser();
-  return user ? formatUser(user) : null;
 }

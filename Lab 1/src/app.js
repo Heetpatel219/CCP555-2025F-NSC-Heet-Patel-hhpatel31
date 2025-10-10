@@ -54,11 +54,18 @@ app.use('/v1/fragments', rawBody());
 // Set up our passport authentication middleware
 const passport = require('passport');
 const authenticate = require('./auth');
+const cognitoAuth = require('./auth/cognito');
 
-// Only set up passport strategy if it exists (not null for testing)
+// Register Basic Auth strategy
 if (authenticate.strategy && authenticate.strategy()) {
-  passport.use(authenticate.strategy());
+  passport.use('http', authenticate.strategy());
 }
+
+// Register JWT Bearer strategy
+if (cognitoAuth.strategy && cognitoAuth.strategy()) {
+  passport.use('bearer', cognitoAuth.strategy());
+}
+
 app.use(passport.initialize());
 
 // Define our routes

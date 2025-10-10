@@ -1,8 +1,6 @@
 // src/auth/index.js
 
-// Configure HTTP Basic Auth strategy for Passport, see:
-// https://github.com/http-auth/http-auth-passport
-
+// Configure authentication strategies for Passport
 const auth = require('http-auth');
 const passport = require('passport');
 const authPassport = require('http-auth-passport');
@@ -13,8 +11,8 @@ if (!process.env.HTPASSWD_FILE) {
   throw new Error('missing expected env var: HTPASSWD_FILE');
 }
 
-// Log that we're using Basic Auth
-logger.info('Using HTTP Basic Auth for auth');
+// Log that we're using both Basic Auth and JWT
+logger.info('Using HTTP Basic Auth and JWT for auth');
 
 module.exports.strategy = () =>
   // For our Passport authentication strategy, we'll look for a
@@ -25,4 +23,4 @@ module.exports.strategy = () =>
     })
   );
 
-module.exports.authenticate = () => passport.authenticate('http', { session: false });
+module.exports.authenticate = () => passport.authenticate(['http', 'bearer'], { session: false });
