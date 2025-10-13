@@ -8,7 +8,7 @@ const domain   = (config.AWS_COGNITO_DOMAIN_URL || '').replace(/\/+$/, '');
 const redirect = (config.OAUTH_SIGN_IN_REDIRECT_URL || 'http://localhost:1234').replace(/\/+$/, '');
 
 // Force mock authentication for testing (set to true to disable real Cognito)
-const useMockAuth = true; // Set to true to use mock auth, false for real Cognito
+const useMockAuth = false; // Set to true to use mock auth, false for real Cognito
 
 // Mock user for testing
 const mockUser = {
