@@ -8,7 +8,7 @@ export const config = {
   AWS_COGNITO_DOMAIN_URL: 'https://us-east-1qgh5bhmhf.auth.us-east-1.amazoncognito.com',
   
   // API Configuration
-  API_URL: 'http://localhost:8080',
+  API_URL: 'http://54.160.181.151:8080',
   
   // OAuth Configuration
   OAUTH_SIGN_IN_REDIRECT_URL: 'http://localhost:1234'

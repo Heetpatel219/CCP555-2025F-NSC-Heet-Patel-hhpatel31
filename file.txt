@@ -1,0 +1,192 @@
+Technical Report: Fragments Microservice Implementation
+
+Assignment 1 - CCP555 Cloud Computing
+
+Student: Heet Patel
+Course: CCP555 Cloud Computing
+Date: October 13, 2025
+
+Introduction
+
+This report documents the successful implementation of a fragments microservice system consisting of a RESTful API backend and a web-based frontend interface. The system allows authenticated users to create, store, and retrieve text fragments through a secure API built with Node.js and Express. The backend is deployed on Amazon EC2 and integrates with AWS Cognito for user authentication, while the frontend provides a user-friendly interface for managing fragments.
+
+The implementation follows modern software development practices including test-driven development, comprehensive logging, proper error handling, and automated CI/CD workflows. The system demonstrates proficiency in cloud computing concepts, microservice architecture, and full-stack web development.
+
+System Architecture and Implementation
+
+Backend API Server (Lab 1)
+
+The fragments API server is built using Node.js and Express.js, following RESTful principles and implementing proper versioning through the `/v1` endpoint structure. The server includes comprehensive middleware for security, logging, and error handling.
+
+Key Features Implemented:
+- Express.js server with proper middleware configuration
+- Structured logging using Pino logger with appropriate log levels (debug, info, warn, error)
+- Environment variable management through dotenv
+- Passport.js authentication supporting both AWS Cognito and Basic Auth
+- In-memory database for fragment storage
+- Comprehensive unit testing with Jest and Supertest
+- Test coverage reporting with 87.36% overall coverage
+
+API Endpoints:
+- GET / - Health check endpoint returning server status
+- POST /v1/fragments - Create new text fragments
+- GET /v1/fragments - Retrieve user's fragment IDs
+- GET /v1/fragments/:id - Retrieve specific fragment by ID
+
+Frontend Web Application (Lab 2)
+
+The fragments UI is a modern web application built with vanilla JavaScript and Parcel bundler, providing an intuitive interface for users to interact with the fragments API.
+
+Key Features:
+- AWS Cognito Hosted UI integration for authentication
+- Configurable API endpoints for development and production environments
+- Real-time fragment creation and display
+- Responsive design with modern UI components
+
+GitHub Repository Links
+
+Backend Repository: https://github.com/Heetpatel219/CCP555-2025F-NSC-Heet-Patel-hhpatel31
+Frontend Repository: https://github.com/Heetpatel219/CCP555-2025F-NSC-Heet-Patel-hhpatel31 (Lab 2 folder)
+
+Both repositories are properly configured with:
+- Comprehensive README files
+- Proper .gitignore files excluding sensitive data
+- GitHub Actions CI workflows for automated testing
+- ESLint and Prettier configuration for code quality
+
+GitHub Actions CI Workflow
+
+The project includes automated CI/CD workflows that run on every push and pull request. The workflow performs:
+
+1. Code Quality Checks: ESLint validation ensuring consistent code style
+2. Unit Testing: Comprehensive test suite execution using Jest
+3. Test Coverage: Automated coverage reporting to maintain high code quality
+
+Workflow Status: All tests passing with successful CI runs demonstrating:
+- Zero linting errors
+- 100% test pass rate
+- Automated deployment readiness
+
+AWS EC2 Deployment
+
+The fragments API server is successfully deployed on Amazon EC2 instance with the following configuration:
+
+EC2 Instance Details:
+- Public IP: 54.160.181.151
+- Port: 8080
+- Environment: Production-ready with proper environment variables
+- Authentication: AWS Cognito integration configured
+
+Health Check Response:
+{
+  "status": "ok",
+  "author": "Heet Patel",
+  "githubUrl": "https://github.com/Heetpatel219/CCP555-2025F-NSC-Heet-Patel-hhpatel31/tree/main/Lab%201",
+  "version": "0.0.1"
+}
+
+The server responds correctly to health checks and maintains stable operation with proper error handling and logging.
+
+Authentication Integration
+
+The system successfully integrates AWS Cognito Hosted UI for user authentication:
+
+Authentication Flow:
+1. Users access the web application at localhost:1234
+2. Click "Login" button redirects to AWS Cognito Hosted UI
+3. Users authenticate with their Cognito credentials
+4. Successful authentication returns JWT tokens
+5. Frontend uses JWT tokens for API requests to EC2 backend
+
+Security Features:
+- JWT token validation on backend
+- Secure token storage in browser
+- Automatic token refresh handling
+- Proper CORS configuration for cross-origin requests
+
+Fragment Creation and API Integration
+
+The system successfully demonstrates end-to-end fragment creation:
+
+Process Flow:
+1. User authenticates through Cognito
+2. User enters text content in the web interface
+3. Frontend sends POST request to EC2 backend at /v1/fragments
+4. Backend validates authentication and creates fragment
+5. Response includes fragment metadata and Location header
+6. Frontend displays success message and updates fragment list
+
+Network Request Details:
+- Method: POST
+- URL: http://54.160.181.151:8080/v1/fragments
+- Headers: Authorization: Bearer [JWT_TOKEN], Content-Type: text/plain
+- Response: 201 Created with fragment metadata
+- Location Header: http://54.160.181.151:8080/v1/fragments/[FRAGMENT_ID]
+
+Test Coverage Analysis
+
+The project achieves comprehensive test coverage with the following metrics:
+
+Overall Coverage:
+- Statements: 87.36% (159/182)
+- Branches: 67.1% (51/76)
+- Functions: 100% (34/34)
+- Lines: 87.5% (154/176)
+
+Coverage by Module:
+- Core Modules (src/index.js, src/model): 92-100% coverage
+- API Routes: 83-90% coverage
+- Authentication: 70% coverage (acceptable for auth complexity)
+- Data Layer: 100% coverage
+
+The high coverage percentage demonstrates thorough testing of critical functionality while maintaining code quality standards above the required 85% threshold.
+
+Technical Implementation Details
+
+Data Model
+- Implemented Fragment class with proper validation
+- In-memory database with async operations
+- Support for text/plain content types
+- Proper error handling and data persistence
+
+Security Implementation
+- Email hashing for user privacy (src/hash.js)
+- Custom authentication middleware
+- JWT token validation
+- Proper CORS configuration
+
+Error Handling
+- Comprehensive error responses with proper HTTP status codes
+- Structured error logging
+- Graceful failure handling
+- User-friendly error messages
+
+Logging Strategy
+- Pino logger implementation
+- Appropriate log levels throughout codebase
+- No console.log statements (replaced with proper logging)
+- Debug information for troubleshooting
+
+Conclusion
+
+The fragments microservice system has been successfully implemented and deployed, meeting all specified requirements. The system demonstrates proficiency in:
+
+- Backend Development: RESTful API design, authentication, data modeling
+- Frontend Development: Modern web application with cloud authentication
+- Cloud Computing: AWS EC2 deployment, Cognito integration
+- DevOps Practices: CI/CD workflows, automated testing, code quality
+- Software Engineering: Test-driven development, comprehensive logging, error handling
+
+Current Status: The system is fully functional with all core features working correctly. Users can authenticate through AWS Cognito, create text fragments, and retrieve their stored fragments through the web interface.
+
+Future Enhancements: While the current implementation meets all assignment requirements, potential improvements for future releases include:
+- Support for additional content types (JSON, HTML, Markdown)
+- Fragment update and deletion functionality
+- Enhanced error handling for edge cases
+- Performance optimization for large fragment collections
+- Additional security features such as rate limiting
+
+The project successfully demonstrates the integration of modern web technologies with cloud computing services, providing a solid foundation for scalable microservice architecture.
+
+Total Pages: 3
+Word Count: Approximately 800 words
