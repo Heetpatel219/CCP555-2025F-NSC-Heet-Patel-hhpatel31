@@ -2,26 +2,5 @@
   "name": "ccp555-labs",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "Lab 1",
-    "Lab 2",
-    "Lab 5",
-    "Lab 6",
-    "Lab 7"
-  ],
-  "devDependencies": {
-    "jest": "^30.2.0"
-  },
-  "dependencies": {
-    "compression": "^1.8.1",
-    "content-type": "^1.0.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "helmet": "^8.1.0",
-    "passport": "^0.7.0",
-    "passport-http": "^0.3.0",
-    "pino": "^10.0.0",
-    "pino-pretty": "^13.1.1",
-    "supertest": "^7.1.4"
-  }
+  "description": "CCP555 Course Labs Repository"
 }
