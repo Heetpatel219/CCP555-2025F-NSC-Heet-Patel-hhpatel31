@@ -1,41 +1,66 @@
-FROM node:22.11.0
+# Multi-stage build for optimized production image
+# Stage 1: Build stage
+FROM node:22.11.0-alpine AS builder
 
 LABEL maintainer = "Heet Patel <hhpatel31@myseneca.ca>"
-LABEL description = "Course: CCP555 Lab: Lab 5"
-LABEL "Lab"="Lab 5"
-LABEL "Date"="October 20, 2025"
+LABEL description = "Course: CCP555 Lab: Lab 6 (Multi-stage)"
+LABEL "Lab"="Lab 6"
+LABEL "Date"="October 21, 2025"
 
-# We default to use port 8080 in our service
-ENV PORT=8080
- 
-# Reduce npm spam when installing within Docker
-# [URL documentation]
-ENV NPM_CONFIG_LOGLEVEL=warn
- 
-# Disable colour when run inside Docker
-# [URL documentation]
-ENV NPM_CONFIG_COLOR=false
-
+# Set working directory
 WORKDIR /app
 
-COPY package*.json /app/
+# Copy package files
+COPY package*.json ./
 
-RUN npm install
+# Install all dependencies (including dev dependencies for building)
+RUN npm ci --include=dev && npm cache clean --force
 
-# Copy src to /app/src/
+# Copy source code
 COPY ./src ./src
 
 # Copy the .htpasswd file for authentication
 COPY ./.htpasswd ./.htpasswd
 
-# Set the environment variable for the htpasswd file
-ENV HTPASSWD_FILE=/app/.htpasswd
+# Stage 2: Production stage
+FROM node:22.11.0-alpine AS production
 
-# Set DOCKER environment variable to disable pretty logging
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S fragments -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy built application from builder stage
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/.htpasswd ./.htpasswd
+
+# Change ownership to non-root user
+RUN chown -R fragments:nodejs /app
+USER fragments
+
+# Environment variables
+ENV PORT=8080
+ENV NPM_CONFIG_LOGLEVEL=warn
+ENV NPM_CONFIG_COLOR=false
+ENV HTPASSWD_FILE=/app/.htpasswd
 ENV DOCKER=true
 
-# Start the container by running our server
-CMD npm start
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
 
-# We run our service on port 8080
+# Start the application
+CMD ["npm", "start"]
+
+# Expose port
 EXPOSE 8080

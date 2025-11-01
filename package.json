@@ -1,4 +1,14 @@
 {
+  "name": "ccp555-labs",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "Lab 1",
+    "Lab 2",
+    "Lab 5",
+    "Lab 6",
+    "Lab 7"
+  ],
   "devDependencies": {
     "jest": "^30.2.0"
   },

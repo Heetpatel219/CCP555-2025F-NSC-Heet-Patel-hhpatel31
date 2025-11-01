@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-// Health check
+// Health check routes
+router.use('/health', require('./health'));
+
+// Root health check (simple version)
 router.get('/', (req, res) => {
   res.set('Cache-Control', 'no-cache');
   res.status(200).json({
