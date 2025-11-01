@@ -19,7 +19,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: "Lab 7/package-lock.json"
       - name: Install node dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps --no-workspaces
         working-directory: "Lab 7"
       - name: Run ESLint
         run: npm run lint
@@ -48,7 +48,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: "Lab 7/package-lock.json"
       - name: Install node dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps --no-workspaces
         working-directory: "Lab 7"
       - name: Run Unit Tests
         run: npm test
