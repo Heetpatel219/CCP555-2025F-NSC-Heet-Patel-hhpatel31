@@ -19,11 +19,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: "Lab 7/package-lock.json"
       - name: Install node dependencies
-        run: npm ci --legacy-peer-deps --no-workspaces
-        working-directory: "Lab 7"
+        run: |
+          cd "Lab 7"
+          npm ci --legacy-peer-deps --no-workspaces
       - name: Run ESLint
-        run: npm run lint
-        working-directory: "Lab 7"
+        run: |
+          cd "Lab 7"
+          npm run lint
 
   # Lint our Dockerfile using Hadolint
   dockerfile-lint:
@@ -48,11 +50,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: "Lab 7/package-lock.json"
       - name: Install node dependencies
-        run: npm ci --legacy-peer-deps --no-workspaces
-        working-directory: "Lab 7"
+        run: |
+          cd "Lab 7"
+          npm ci --legacy-peer-deps --no-workspaces
       - name: Run Unit Tests
-        run: npm test
-        working-directory: "Lab 7"
+        run: |
+          cd "Lab 7"
+          npm test
 
   docker-hub:
     name: Build and Push to Docker Hub
