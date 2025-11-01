@@ -43,12 +43,12 @@ router.get('/', (req, res) => {
     res.set('Expires', '0');
     
     res.status(200).json(healthData);
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
       status: 'error',
       timestamp: new Date().toISOString(),
       error: {
-        message: 'Health check failed',
+        message: err.message || 'Health check failed',
         code: 500
       }
     });
