@@ -1,0 +1,93 @@
+name: CI Lab 7
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'Lab 7/**'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'Lab 7/**'
+
+jobs:
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: "Lab 7/package-lock.json"
+      - name: Install node dependencies
+        run: |
+          cd "Lab 7"
+          npm ci
+      - name: Run ESLint
+        run: |
+          cd "Lab 7"
+          npm run lint
+
+  # Lint our Dockerfile using Hadolint
+  dockerfile-lint:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      # https://github.com/marketplace/actions/hadolint-action
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Lab 7/Dockerfile
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: "Lab 7/package-lock.json"
+      - name: Install node dependencies
+        run: |
+          cd "Lab 7"
+          npm ci
+      - name: Run Unit Tests
+        run: |
+          cd "Lab 7"
+          npm test
+
+  docker-hub:
+    name: Build and Push to Docker Hub
+    # Don't bother running this job unless the other three all pass
+    needs: [lint, dockerfile-lint, unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      # Set up buildx for optimal Docker Builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login to Docker Hub using GitHub secrets
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Build and Push an Image to Docker Hub
+      - name: Build and push
+        env:
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/fragments
+          SHA_TAG: sha-${{ github.sha }}
+        uses: docker/build-push-action@v6
+        with:
+          context: Lab 7
+          file: Lab 7/Dockerfile
+          push: true
+          tags: ${{ env.DOCKERHUB_REPO }}:${{ env.SHA_TAG }}, ${{ env.DOCKERHUB_REPO }}:main, ${{ env.DOCKERHUB_REPO }}:latest
+

@@ -2,6 +2,9 @@
 # Stage 1: Build dependencies
 FROM node:lts-alpine AS builder
 
+LABEL maintainer="Heet Patel <hhpatel31@myseneca.ca>"
+LABEL description="Fragments microservice Docker image"
+
 # Set working directory
 WORKDIR /app
 
@@ -9,10 +12,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --only=production && \
+    npm cache clean --force
 
 # Stage 2: Production image
 FROM node:lts-alpine
+
+LABEL maintainer="Heet Patel <hhpatel31@myseneca.ca>"
+LABEL description="Fragments microservice Docker image"
 
 # Create app directory
 WORKDIR /app
