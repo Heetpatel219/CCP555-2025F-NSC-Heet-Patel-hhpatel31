@@ -3,12 +3,8 @@ name: CI Lab 7
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - 'Lab 7/**'
   pull_request:
     branches: [ main, master ]
-    paths:
-      - 'Lab 7/**'
 
 jobs:
   lint:
