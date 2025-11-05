@@ -1,9 +1,6 @@
-# Multi-stage build for optimized production image
-# Stage 1: Build stage
-FROM node:22.11.0-alpine AS builder
-
-LABEL maintainer="Heet Patel <hhpatel31@myseneca.ca>"
-LABEL description="Course: CCP555 Lab: Lab 7 (Multi-stage)"
+# Multi-stage Dockerfile for fragments microservice
+# Stage 1: Build dependencies
+FROM node:lts-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -11,54 +8,38 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies for building)
-RUN npm ci --include=dev && npm cache clean --force
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy source code
-COPY ./src ./src
+# Stage 2: Production image
+FROM node:lts-alpine
 
-# Copy the .htpasswd file for authentication
-COPY ./.htpasswd ./.htpasswd
-
-# Stage 2: Production stage
-FROM node:22.11.0-alpine AS production
-
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init=1.2.5
+# Create app directory
+WORKDIR /app
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S fragments -u 1001
+    adduser -S nodejs -u 1001
 
-# Set working directory
-WORKDIR /app
+# Copy dependencies from builder
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 
-# Copy package files
-COPY package*.json ./
+# Copy application files
+COPY --chown=nodejs:nodejs . .
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy built application from builder stage
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/.htpasswd ./.htpasswd
-
-# Change ownership to non-root user
-RUN chown -R fragments:nodejs /app
-USER fragments
-
-# Environment variables
-ENV PORT=8080
-ENV NPM_CONFIG_LOGLEVEL=warn
-ENV NPM_CONFIG_COLOR=false
-ENV HTPASSWD_FILE=/app/.htpasswd
-ENV DOCKER=true
-
-# Use dumb-init for proper signal handling
-ENTRYPOINT ["dumb-init", "--"]
-
-# Start the application
-CMD ["npm", "start"]
+# Switch to non-root user
+USER nodejs
 
 # Expose port
 EXPOSE 8080
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8080/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Start the application
+CMD ["node", "src/index.js"]

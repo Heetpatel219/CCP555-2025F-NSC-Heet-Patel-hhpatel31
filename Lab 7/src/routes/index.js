@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { version } = require('../../package.json');
 
 // Health check routes
 router.use('/health', require('./health'));
@@ -10,8 +11,8 @@ router.get('/', (req, res) => {
   res.status(200).json({
     status: 'ok',
     author: 'Heet Patel',
-    githubUrl: 'https://github.com/Heetpatel219/CCP555-2025F-NSC-Heet-Patel-hhpatel31/tree/main/Lab%201',
-    version: '0.0.1'
+    githubUrl: 'https://github.com/Heetpatel219/CCP555-2025F-NSC-Heet-Patel-hhpatel31/tree/main/Lab%207',
+    version: version
   });
 });
 
