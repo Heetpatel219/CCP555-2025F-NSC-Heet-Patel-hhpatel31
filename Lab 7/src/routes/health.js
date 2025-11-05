@@ -49,7 +49,8 @@ router.get('/', (req, res) => {
       timestamp: new Date().toISOString(),
       error: {
         message: 'Health check failed',
-        code: 500
+        code: 500,
+        details: error.message
       }
     });
   }
