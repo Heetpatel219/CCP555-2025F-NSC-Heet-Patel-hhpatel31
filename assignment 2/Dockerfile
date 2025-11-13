@@ -12,8 +12,9 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (production only)
-RUN npm ci --production && \
-    npm cache clean --force
+# Use npm ci with production flag, fallback to npm install if needed
+RUN npm ci --production --no-audit --no-fund || \
+    (npm install --production --no-audit --no-fund && npm cache clean --force)
 
 # Stage 2: Production image
 FROM node:lts-alpine
