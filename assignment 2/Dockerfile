@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (production only)
-RUN npm ci --omit=dev && \
+RUN npm ci --production && \
     npm cache clean --force
 
 # Stage 2: Production image
