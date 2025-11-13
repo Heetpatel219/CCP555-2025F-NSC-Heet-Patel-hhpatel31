@@ -1,20 +1,44 @@
 const request = require('supertest');
 const express = require('express');
-const app = require('../../src/app');
+const contentType = require('content-type');
+const Fragment = require('../../src/model/fragment');
 
-// Mock authentication middleware
-const mockAuth = (req, res, next) => {
-  req.user = 'user1@email.com';
-  next();
-};
-
-// Create a test app with mocked auth
+// Create a test app with mocked auth and raw body parser
 const testApp = express();
+
+// Mock authentication middleware - set user before routes
 testApp.use((req, res, next) => {
   req.user = 'user1@email.com';
   next();
 });
-testApp.use('/', require('../../src/routes'));
+
+// Raw body parser for fragments (matching app.js)
+const rawBody = () =>
+  express.raw({
+    inflate: true,
+    limit: '5mb',
+    type: (req) => {
+      try {
+        const { type } = contentType.parse(req);
+        return Fragment.isSupportedType(type);
+      } catch {
+        return false;
+      }
+    },
+  });
+
+testApp.use('/v1/fragments', rawBody());
+
+// Set up routes directly, bypassing authenticate middleware
+const getFragments = require('../../src/routes/api/v1/get');
+const postFragment = require('../../src/routes/api/v1/post');
+const getFragmentById = require('../../src/routes/api/v1/get-by-id-ext');
+const getFragmentInfo = require('../../src/routes/api/v1/get-info');
+
+testApp.get('/v1/fragments', getFragments);
+testApp.post('/v1/fragments', postFragment);
+testApp.get('/v1/fragments/:id/info', getFragmentInfo);
+testApp.get('/v1/fragments/:id', getFragmentById);
 
 describe('Fragments v1 API routes', () => {
   const textData = 'Hello World';

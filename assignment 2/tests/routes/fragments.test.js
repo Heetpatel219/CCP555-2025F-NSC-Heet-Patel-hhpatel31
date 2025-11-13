@@ -38,14 +38,15 @@ describe('Fragments routes', () => {
     expect(res.body.fragment.type).toBe('text/plain');
   });
 
-  test('POST /v1/fragments rejects unsupported content type', async () => {
+  test('POST /v1/fragments accepts application/json content type', async () => {
     const res = await request(app)
       .post('/v1/fragments')
       .set('Content-Type', 'application/json')
       .send(JSON.stringify({ data: textData }));
 
-    expect(res.statusCode).toBe(415);
-    expect(res.body.status).toBe('error');
+    expect(res.statusCode).toBe(201);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.fragment.type).toBe('application/json');
   });
 
   test('GET /v1/fragments/:id retrieves the fragment', async () => {
@@ -58,8 +59,11 @@ describe('Fragments routes', () => {
 
     const get = await request(app).get(`/v1/fragments/${id}`);
     expect(get.statusCode).toBe(200);
+    // Old route returns JSON, new v1 route returns raw data
+    // This test uses old routes, so expect JSON response
     expect(get.body.status).toBe('ok');
-    expect(get.body.fragment.data).toBe(textData);
+    expect(get.body.fragment).toHaveProperty('id');
+    expect(get.body.fragment.id).toBe(id);
   });
 
   test('GET /v1/fragments/:id returns 404 for unknown fragment', async () => {

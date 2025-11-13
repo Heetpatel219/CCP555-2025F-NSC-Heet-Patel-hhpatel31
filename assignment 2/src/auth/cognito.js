@@ -17,8 +17,7 @@ if (!(process.env.AWS_COGNITO_POOL_ID && process.env.AWS_COGNITO_CLIENT_ID)) {
   logger.warn('AWS Cognito environment variables not set. JWT authentication will be disabled.');
   module.exports.strategy = () => null;
   module.exports.authenticate = () => null;
-  return;
-}
+} else {
  
 // Log that we're using Cognito
 logger.info('Using AWS Cognito for auth');
@@ -72,3 +71,4 @@ module.exports.strategy = () =>
   });
  
 module.exports.authenticate = () => authorize('bearer');
+}

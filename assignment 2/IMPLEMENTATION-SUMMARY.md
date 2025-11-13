@@ -29,8 +29,8 @@
 
 5. **Configuration**
    - ✅ Updated Cognito credentials in `debug.env`:
-     - User Pool ID: `us-east-1_dy5ip4fLU`
-     - Client ID: `7jc5dkovnhk7j1nvm3g05fsr20`
+   - User Pool ID: `us-east-1_qgh5BHmhF`
+   - Client ID: `696dkue673bnicfbe2clsrd7r3`
 
 6. **Testing**
    - ✅ Updated Fragment model tests for new functionality
@@ -92,8 +92,8 @@ docker pull your-dockerhub-username/fragments:latest
 
 # Run the container with Cognito credentials
 docker run -d -p 8080:8080 \
-  -e AWS_COGNITO_POOL_ID=us-east-1_dy5ip4fLU \
-  -e AWS_COGNITO_CLIENT_ID=7jc5dkovnhk7j1nvm3g05fsr20 \
+  -e AWS_COGNITO_POOL_ID=us-east-1_qgh5BHmhF \
+  -e AWS_COGNITO_CLIENT_ID=696dkue673bnicfbe2clsrd7r3 \
   --name fragments-api \
   your-dockerhub-username/fragments:latest
 
@@ -186,8 +186,8 @@ docker build -t your-username/fragments:latest .
 
 # Run Docker container
 docker run -p 8080:8080 \
-  -e AWS_COGNITO_POOL_ID=us-east-1_dy5ip4fLU \
-  -e AWS_COGNITO_CLIENT_ID=7jc5dkovnhk7j1nvm3g05fsr20 \
+  -e AWS_COGNITO_POOL_ID=us-east-1_qgh5BHmhF \
+  -e AWS_COGNITO_CLIENT_ID=696dkue673bnicfbe2clsrd7r3 \
   your-username/fragments:latest
 ```
 

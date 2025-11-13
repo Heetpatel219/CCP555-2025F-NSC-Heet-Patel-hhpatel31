@@ -56,9 +56,25 @@ if (!useMockAuth) {
 }
 
 function formatUser(user) {
-  return {
+  console.log('Raw user from Cognito:', user);
+  console.log('User profile:', user?.profile);
+  
+  // Try to extract email from JWT token if not in profile
+  let email = user?.profile?.email;
+  if (!email && user?.id_token) {
+    try {
+      // Decode JWT token to get email (JWT is base64 encoded)
+      const payload = JSON.parse(atob(user.id_token.split('.')[1]));
+      email = payload.email || payload['cognito:username'];
+      console.log('Extracted email from JWT:', email);
+    } catch (e) {
+      console.warn('Could not decode JWT token:', e);
+    }
+  }
+  
+  const formatted = {
     username: user?.profile?.['cognito:username'],
-    email: user?.profile?.email,
+    email: email,
     idToken: user?.id_token,
     accessToken: user?.access_token,
     authorizationHeaders: (type = 'application/json') => ({
@@ -66,6 +82,9 @@ function formatUser(user) {
       Authorization: `Bearer ${user.id_token}`,
     }),
   };
+  
+  console.log('Formatted user:', formatted);
+  return formatted;
 }
 
 export function signIn() {
