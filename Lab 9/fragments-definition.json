@@ -32,7 +32,7 @@
         },
         {
           "name": "AWS_S3_BUCKET_NAME",
-          "value": "<YOUR_BUCKET_NAME>"
+          "value": "hhpatel31-fragments"
         }
       ],
       "logConfiguration": {
