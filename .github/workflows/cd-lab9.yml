@@ -80,7 +80,7 @@ jobs:
         with:
           task-definition: ${{ steps.update-task-def.outputs.task-definition }}
           service: fragments
-          cluster: fragments-cluster
+          cluster: fragemnts-cluster
           wait-for-service-stability: true
           wait-for-minutes: 10
 
@@ -101,19 +101,19 @@ jobs:
         run: |
           echo "Checking ECS service status..."
           SERVICE_STATUS=$(aws ecs describe-services \
-            --cluster fragments-cluster \
+            --cluster fragemnts-cluster \
             --services fragments \
             --query 'services[0].status' \
             --output text)
           
           RUNNING_COUNT=$(aws ecs describe-services \
-            --cluster fragments-cluster \
+            --cluster fragemnts-cluster \
             --services fragments \
             --query 'services[0].runningCount' \
             --output text)
           
           DESIRED_COUNT=$(aws ecs describe-services \
-            --cluster fragments-cluster \
+            --cluster fragemnts-cluster \
             --services fragments \
             --query 'services[0].desiredCount' \
             --output text)
