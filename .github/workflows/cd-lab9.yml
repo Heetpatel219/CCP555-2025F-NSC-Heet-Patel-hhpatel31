@@ -82,6 +82,7 @@ jobs:
           service: fragments
           cluster: fragments-cluster
           wait-for-service-stability: true
+          wait-for-minutes: 10
 
   verify-deployment:
     name: Verify Deployment
