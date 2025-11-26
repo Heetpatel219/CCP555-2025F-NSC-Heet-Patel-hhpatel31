@@ -6,10 +6,11 @@ name: CD Lab 7
 
 on:
   push:
-    # Whenever a new tag is pushed
+    # Whenever a new tag is pushed for Lab 7
     tags:
-      # Any tag starting with v... should trigger this workflow.
-      - 'v**'
+      # Tags for Lab 7 (v0.7.x and v0.8.x)
+      - 'v0.7.*'
+      - 'v0.8.*'
 
 jobs:
   aws:
@@ -48,5 +49,5 @@ jobs:
           context: assignment 2
           file: assignment 2/Dockerfile
           push: true
-          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}, ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
 

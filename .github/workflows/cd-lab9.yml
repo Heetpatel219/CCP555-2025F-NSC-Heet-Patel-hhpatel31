@@ -6,10 +6,12 @@ name: CD Lab 9
 
 on:
   push:
-    # Whenever a new tag is pushed
+    # Whenever a new tag is pushed for Lab 9
     tags:
-      # Any tag starting with v... should trigger this workflow.
-      - 'v**'
+      # Tags for Lab 9 (v0.9.x and above)
+      - 'v0.9.*'
+      - 'v0.1[0-9].*'
+      - 'v[1-9]*'
 
 jobs:
   aws:
