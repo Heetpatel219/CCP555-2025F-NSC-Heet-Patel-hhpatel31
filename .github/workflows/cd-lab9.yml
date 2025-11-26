@@ -1,0 +1,132 @@
+# Continuous Delivery Workflow for Lab 9
+#
+# This should happen whenever we push a new tag, and we tag an existing
+# commit after we know it's good (e.g., has been tested).
+name: CD Lab 9
+
+on:
+  push:
+    # Whenever a new tag is pushed
+    tags:
+      # Any tag starting with v... should trigger this workflow.
+      - 'v**'
+
+jobs:
+  aws:
+    name: AWS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Use buildx for optimal Docker builds
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Configure AWS Credentials (for ECR and ECS deployment)
+      - name: Configure AWS Credentials using Secrets
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      # Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build and Push to Amazon ECR
+      - name: Build and push to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: ccp555-2025f/lab9-demo
+          VERSION_TAG: ${{ github.ref_name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: Lab 9
+          file: Lab 9/Dockerfile
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
+
+      # Fill in the new image ID in the Amazon ECS task definition
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: update-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: ccp555-2025f/lab9-demo
+          VERSION_TAG: ${{ github.ref_name }}
+        with:
+          task-definition: Lab 9/fragments-definition.json
+          container-name: fragments
+          # Use the image we just built and pushed to ECR for this tag
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
+          # Add all the necessary environment variables
+          # NOTE: We do NOT include AWS credentials here - we use IAM roles instead
+          environment-variables: |
+            LOG_LEVEL=info
+            NODE_ENV=production
+            AWS_REGION=us-east-1
+            AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
+
+      # Deploy Amazon ECS task definition
+      - name: Deploy Amazon ECS task definition
+        id: deploy-ecs
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+          service: fragments
+          cluster: fragments-cluster
+          wait-for-service-stability: true
+
+  verify-deployment:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: aws
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Verify ECS Service Status
+        run: |
+          echo "Checking ECS service status..."
+          SERVICE_STATUS=$(aws ecs describe-services \
+            --cluster fragments-cluster \
+            --services fragments \
+            --query 'services[0].status' \
+            --output text)
+          
+          RUNNING_COUNT=$(aws ecs describe-services \
+            --cluster fragments-cluster \
+            --services fragments \
+            --query 'services[0].runningCount' \
+            --output text)
+          
+          DESIRED_COUNT=$(aws ecs describe-services \
+            --cluster fragments-cluster \
+            --services fragments \
+            --query 'services[0].desiredCount' \
+            --output text)
+          
+          echo "Service Status: $SERVICE_STATUS"
+          echo "Running Tasks: $RUNNING_COUNT / $DESIRED_COUNT"
+          
+          if [ "$SERVICE_STATUS" != "ACTIVE" ] || [ "$RUNNING_COUNT" -lt "$DESIRED_COUNT" ]; then
+            echo "⚠️ Warning: Service may not be fully deployed"
+            exit 0  # Don't fail, just warn
+          else
+            echo "✅ Service is active and running"
+          fi
+
+      - name: Check Recent CloudWatch Logs
+        run: |
+          echo "Checking recent CloudWatch logs for errors..."
+          aws logs tail /ecs/fragments --since 10m --format short --follow=false | tail -20 || echo "Could not retrieve logs (this is okay if log group doesn't exist yet)"
+
