@@ -38,15 +38,15 @@ COPY --chown=nodejs:nodejs . .
 USER nodejs
 
 # Expose port
-EXPOSE 8080
+EXPOSE 80
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=80
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:80/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the application
 CMD ["node", "src/index.js"]
