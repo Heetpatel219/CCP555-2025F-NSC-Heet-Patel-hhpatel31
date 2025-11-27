@@ -54,6 +54,18 @@ class MemoryDB {
     return fragments;
   }
 
+  async findFragmentById(id) {
+    for (const key of this.db.keys()) {
+      if (!key.endsWith(':data')) {
+        const [ownerId, fragmentId] = key.split(':');
+        if (fragmentId === id) {
+          return this.readFragment(ownerId, fragmentId);
+        }
+      }
+    }
+    return undefined;
+  }
+
   async deleteFragment(ownerId, id) {
     // Find and delete all keys related to this fragment
     const keysToDelete = [];

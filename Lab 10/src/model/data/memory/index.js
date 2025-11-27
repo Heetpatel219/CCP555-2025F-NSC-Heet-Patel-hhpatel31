@@ -9,5 +9,6 @@ module.exports = {
   readFragmentData: db.readFragmentData.bind(db),
   listFragments: db.listFragments.bind(db),
   deleteFragment: db.deleteFragment.bind(db),
+  findFragmentById: db.findFragmentById.bind(db),
   db, // exporting db instance for direct access in fragment.js list()
 };

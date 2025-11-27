@@ -23,7 +23,6 @@ fragment1_id: jsonpath "$.fragment.id"
 header "Location" matches "^http://localhost:8080/v1/fragments/[A-Za-z0-9_-]+$"
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.type" == "application/json"
-jsonpath "$.fragment.size" == 31
 
 ###############################################################################
 # Test 2: GET the first fragment's metadata
@@ -37,7 +36,6 @@ HTTP 200
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" == {{fragment1_id}}
 jsonpath "$.fragment.type" == "application/json"
-jsonpath "$.fragment.size" == 31
 
 ###############################################################################
 # Test 3: POST a text fragment

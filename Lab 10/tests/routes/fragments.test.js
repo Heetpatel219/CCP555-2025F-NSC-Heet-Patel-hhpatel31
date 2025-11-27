@@ -41,8 +41,8 @@ describe('Fragments routes', () => {
   test('POST /v1/fragments rejects unsupported content type', async () => {
     const res = await request(app)
       .post('/v1/fragments')
-      .set('Content-Type', 'application/json')
-      .send(JSON.stringify({ data: textData }));
+      .set('Content-Type', 'image/png')
+      .send(Buffer.from('not really an image'));
 
     expect(res.statusCode).toBe(415);
     expect(res.body.status).toBe('error');
