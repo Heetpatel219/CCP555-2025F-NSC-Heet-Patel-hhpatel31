@@ -78,6 +78,7 @@ jobs:
             AWS_REGION=us-east-1
             AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }}
             PORT=80
+            HTPASSWD_FILE=tests/.htpasswd
 
       # Deploy Amazon ECS task definition
       - name: Deploy Amazon ECS task definition

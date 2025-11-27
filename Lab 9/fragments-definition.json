@@ -37,6 +37,10 @@
         {
           "name": "PORT",
           "value": "80"
+        },
+        {
+          "name": "HTPASSWD_FILE",
+          "value": "tests/.htpasswd"
         }
       ],
       "logConfiguration": {
