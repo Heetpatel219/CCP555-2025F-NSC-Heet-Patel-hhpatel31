@@ -34,6 +34,11 @@ jobs:
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: us-east-1
 
+      # Create CloudWatch log group if it doesn't exist
+      - name: Create CloudWatch log group
+        run: |
+          aws logs create-log-group --log-group-name /ecs/fragments --region us-east-1 || echo "Log group already exists or creation failed"
+
       # Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
