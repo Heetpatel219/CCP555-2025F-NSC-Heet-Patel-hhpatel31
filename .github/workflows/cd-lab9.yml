@@ -82,7 +82,7 @@ jobs:
           service: fragemnts-cluster
           cluster: default
           wait-for-service-stability: true
-          wait-for-minutes: 10
+          wait-for-minutes: 30
 
   verify-deployment:
     name: Verify Deployment
