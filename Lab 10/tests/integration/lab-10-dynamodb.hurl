@@ -7,8 +7,8 @@
 
 POST http://localhost:8080/v1/fragments
 Content-Type: application/json
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
-
+[BasicAuth]
+user1@email.com:password1
 ```
 {
   "service": "DynamoDB"
@@ -23,29 +23,32 @@ fragment1_id: jsonpath "$.fragment.id"
 header "Location" matches "^http://localhost:8080/v1/fragments/[A-Za-z0-9_-]+$"
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.type" == "application/json"
+jsonpath "$.fragment.size" == 26
 
 ###############################################################################
 # Test 2: GET the first fragment's metadata
 ###############################################################################
 
-GET {{fragment1_url}}
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
+GET {{fragment1_url}}/info
+[BasicAuth]
+user1@email.com:password1
 
 HTTP 200
 [Asserts]
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" == {{fragment1_id}}
 jsonpath "$.fragment.type" == "application/json"
+jsonpath "$.fragment.size" == 26
 
 ###############################################################################
-# Test 3: POST a text fragment
+# Test 3: POST a Markdown fragment
 ###############################################################################
 
 POST http://localhost:8080/v1/fragments
-Content-Type: text/plain
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
-
-`DynamoDB is great.`
+Content-Type: text/markdown
+[BasicAuth]
+user1@email.com:password1
+`DynamoDB is **great**.`
 
 HTTP 201
 [Captures]
@@ -53,39 +56,43 @@ fragment2_url: header "Location"
 fragment2_id: jsonpath "$.fragment.id"
 [Asserts]
 jsonpath "$.status" == "ok"
-jsonpath "$.fragment.type" == "text/plain"
+jsonpath "$.fragment.type" == "text/markdown"
 
 ###############################################################################
 # Test 4: GET the second fragment's metadata
 ###############################################################################
 
-GET {{fragment2_url}}
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
+GET {{fragment2_url}}/info
+[BasicAuth]
+user1@email.com:password1
 
 HTTP 200
 [Asserts]
 jsonpath "$.status" == "ok"
 jsonpath "$.fragment.id" == {{fragment2_id}}
-jsonpath "$.fragment.type" == "text/plain"
+jsonpath "$.fragment.type" == "text/markdown"
 
 ###############################################################################
 # Test 5: GET all fragments (should include both IDs)
 ###############################################################################
 
 GET http://localhost:8080/v1/fragments
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
+[BasicAuth]
+user1@email.com:password1
 
 HTTP 200
 [Asserts]
 jsonpath "$.status" == "ok"
-jsonpath "$.fragments" exists
+jsonpath "$.fragments" contains {{fragment1_id}}
+jsonpath "$.fragments" contains {{fragment2_id}}
 
 ###############################################################################
 # Test 6: DELETE the first fragment
 ###############################################################################
 
 DELETE {{fragment1_url}}
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
+[BasicAuth]
+user1@email.com:password1
 
 HTTP 200
 [Asserts]
@@ -95,8 +102,9 @@ jsonpath "$.status" == "ok"
 # Test 7: GET the deleted fragment (should return 404)
 ###############################################################################
 
-GET {{fragment1_url}}
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
+GET {{fragment1_url}}/info
+[BasicAuth]
+user1@email.com:password1
 
 HTTP 404
 
@@ -105,10 +113,12 @@ HTTP 404
 ###############################################################################
 
 GET http://localhost:8080/v1/fragments
-Authorization: Basic dXNlcjFAZW1haWwuY29tOnBhc3N3b3JkMQ==
+[BasicAuth]
+user1@email.com:password1
 
 HTTP 200
 [Asserts]
 jsonpath "$.status" == "ok"
-jsonpath "$.fragments" exists
+jsonpath "$.fragments" not contains {{fragment1_id}}
+jsonpath "$.fragments" contains {{fragment2_id}}
 

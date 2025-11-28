@@ -14,7 +14,7 @@ class Fragment {
   static isSupportedType(type) {
     // Remove charset and other parameters for comparison
     const baseType = type ? type.split(';')[0].trim() : '';
-    return baseType === 'text/plain' || baseType === 'application/json';
+    return baseType === 'text/plain' || baseType === 'application/json' || baseType === 'text/markdown';
   }
 
   async save(buffer) {
@@ -40,7 +40,7 @@ class Fragment {
     if (!meta) return null;
 
     const data = await db.readFragmentData(ownerId, id);
-    if (meta.type === 'text/plain') return data.toString('utf-8'); // return text
+    if (meta.type === 'text/plain' || meta.type === 'text/markdown') return data.toString('utf-8'); // return text
 
     return { ...meta, data };
   }

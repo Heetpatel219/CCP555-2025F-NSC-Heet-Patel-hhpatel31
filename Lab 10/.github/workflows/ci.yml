@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      # Generate .htpasswd for tests (Approach 1 - from secrets)
+      - name: Create .htpasswd for tests
+        run: |
+          sudo apt-get install -y apache2-utils
+          htpasswd -Bbn user1@email.com password1 > tests/.htpasswd
+      
+      # Start Docker services
+      - name: Start services
+        run: docker compose up -d --build
+      
+      # Wait for services to be healthy
+      - name: Wait for services
+        run: |
+          npm install -g wait-on
+          wait-on http://localhost:8080 --timeout 60000
+      
+      # Setup local AWS resources
+      - name: Setup local AWS
+        run: ./scripts/local-aws-setup.sh
+      
+      # Run integration tests
+      - name: Run integration tests
+        run: npm run test:integration
+      
+      # Cleanup
+      - name: Stop services
+        run: docker compose down
+
+  docker-hub:
+    needs: [lint, unit-tests, integration-tests]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            dcjoker/fragments:latest
+            dcjoker/fragments:${{ github.ref_name }}
+
