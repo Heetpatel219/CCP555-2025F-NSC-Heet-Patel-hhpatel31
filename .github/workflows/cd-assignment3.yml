@@ -9,16 +9,19 @@ on:
       - 'v**' # Triggers on any tag starting with 'v'
 
 jobs:
-  aws:
-    name: Assignment 3 - Deploy to AWS ECR & ECS
+  aws-ecr:
+    name: Assignment 3 - Build and Push to AWS ECR
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@v3
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       # Configure AWS credentials from GitHub Secrets
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -26,11 +29,13 @@ jobs:
           aws-region: us-east-1
 
       # Login to Amazon ECR
-      - uses: aws-actions/amazon-ecr-login@v2
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
         id: login-ecr
 
       # Build and push to ECR
-      - uses: docker/build-push-action@v6
+      - name: Build and push Docker image to ECR
+        uses: docker/build-push-action@v6
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPO: fragments
@@ -41,19 +46,12 @@ jobs:
           push: true
           tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}, ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
 
-      # Update ECS task definition with new image
-      - uses: aws-actions/amazon-ecs-render-task-definition@v1
-        id: task-def
-        with:
-          task-definition: "assignment 3/deploy/fragments-definition.json"
-          container-name: fragments
-          image: ${{ steps.login-ecr.outputs.registry }}/fragments:latest
-
-      # Deploy to ECS
-      - uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: fragments-service
-          cluster: fragments-cluster
-          wait-for-service-stability: true
-
+      - name: Output image details
+        run: |
+          echo "✅ Image pushed successfully!"
+          echo "ECR Registry: ${{ steps.login-ecr.outputs.registry }}"
+          echo "Repository: fragments"
+          echo "Tags: ${{ github.ref_name }}, latest"
+          echo ""
+          echo "📦 Full Image URI:"
+          echo "${{ steps.login-ecr.outputs.registry }}/fragments:${{ github.ref_name }}"
