@@ -9,8 +9,8 @@ on:
       - 'v**' # Triggers on any tag starting with 'v'
 
 jobs:
-  aws-ecr:
-    name: Assignment 3 - Build and Push to AWS ECR
+  aws-ecr-ecs:
+    name: Assignment 3 - Build, Push to ECR & Deploy to ECS
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -48,10 +48,32 @@ jobs:
 
       - name: Output image details
         run: |
-          echo "✅ Image pushed successfully!"
+          echo "✅ Image pushed to ECR successfully!"
           echo "ECR Registry: ${{ steps.login-ecr.outputs.registry }}"
           echo "Repository: fragments"
           echo "Tags: ${{ github.ref_name }}, latest"
-          echo ""
-          echo "📦 Full Image URI:"
-          echo "${{ steps.login-ecr.outputs.registry }}/fragments:${{ github.ref_name }}"
+
+      # Update ECS task definition with new image
+      - name: Render new ECS task definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        id: task-def
+        with:
+          task-definition: "assignment 3/deploy/fragments-definition.json"
+          container-name: fragments
+          image: ${{ steps.login-ecr.outputs.registry }}/fragments:${{ github.ref_name }}
+
+      # Deploy to ECS
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: fragments-service
+          cluster: fragments-cluster
+          wait-for-service-stability: true
+
+      - name: Deployment complete
+        run: |
+          echo "🚀 Deployment to ECS complete!"
+          echo "Cluster: fragments-cluster"
+          echo "Service: fragments-service"
+          echo "Image: ${{ steps.login-ecr.outputs.registry }}/fragments:${{ github.ref_name }}"
