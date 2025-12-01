@@ -1,23 +1,25 @@
 {
   "name": "fragments-ui",
   "private": true,
-  "version": "0.0.1",
-  "description": "Fragments UI testing web app",
+  "version": "0.10.0",
+  "description": "Fragments UI - Frontend for Fragments microservice",
   "scripts": {
     "dev": "parcel index.html --port 1234",
+    "start": "parcel index.html --port 1234",
     "build": "parcel build index.html",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rimraf dist .parcel-cache"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ParamKatrodia/fragments-ui.git"
+    "url": "git+https://github.com/Heetpatel219/CCP555-2025F-NSC-Heet-Patel-hhpatel31"
   },
-  "author": "Param Katrodia",
+  "author": "Heet Patel",
   "license": "UNLICENSED",
   "dependencies": {
     "oidc-client-ts": "^3.3.0"
   },
   "devDependencies": {
-    "parcel": "^2.15.4"
+    "parcel": "^2.15.4",
+    "rimraf": "^6.0.0"
   }
 }

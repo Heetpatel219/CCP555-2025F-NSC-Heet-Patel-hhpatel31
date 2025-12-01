@@ -1,0 +1,45 @@
+{
+  "family": "fragments-task",
+  "containerDefinitions": [
+    {
+      "name": "fragments",
+      "image": "992382586628.dkr.ecr.us-east-1.amazonaws.com/fragments:latest",
+      "cpu": 512,
+      "memory": 1024,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "PORT", "value": "8080" },
+        { "name": "LOG_LEVEL", "value": "info" },
+        { "name": "AWS_REGION", "value": "us-east-1" },
+        { "name": "AWS_S3_BUCKET_NAME", "value": "fragments-992382586628" },
+        { "name": "AWS_DYNAMODB_TABLE_NAME", "value": "fragments" },
+        { "name": "AWS_COGNITO_POOL_ID", "value": "us-east-1_qgh5BHmhF" },
+        { "name": "AWS_COGNITO_CLIENT_ID", "value": "696dkue673bnicfbe2clsrd7r3" },
+        { "name": "HASH_SECRET", "value": "fragments-secret-key" },
+        { "name": "HTPASSWD_FILE", "value": "tests/.htpasswd" },
+        { "name": "DATA_BACKEND", "value": "aws" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/fragments-task",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::992382586628:role/LabRole",
+  "taskRoleArn": "arn:aws:iam::992382586628:role/LabRole"
+}

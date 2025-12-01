@@ -1,15 +1,21 @@
 // Configuration file for Fragments UI
-// Update these values with your actual AWS Cognito and API configuration
+// Uses runtime config (injected by Docker) if available, falls back to defaults
+
+const runtimeConfig = typeof window !== 'undefined' && window.__RUNTIME_CONFIG__;
 
 export const config = {
-  // AWS Cognito Configuration (Assignment 2)
-  AWS_COGNITO_POOL_ID: 'us-east-1_qgh5BHmhF',
-  AWS_COGNITO_CLIENT_ID: '696dkue673bnicfbe2clsrd7r3',
-  AWS_COGNITO_DOMAIN_URL: 'https://us-east-1qgh5bhmhf.auth.us-east-1.amazoncognito.com',
+  // AWS Cognito Configuration
+  AWS_COGNITO_POOL_ID: runtimeConfig?.cognitoPoolId || 'us-east-1_qgh5BHmhF',
+  AWS_COGNITO_CLIENT_ID: runtimeConfig?.cognitoClientId || '696dkue673bnicfbe2clsrd7r3',
+  AWS_COGNITO_DOMAIN_URL: runtimeConfig?.cognitoDomain 
+    ? `https://${runtimeConfig.cognitoDomain}.auth.us-east-1.amazoncognito.com`
+    : 'https://us-east-1qgh5bhmhf.auth.us-east-1.amazoncognito.com',
   
-  // API Configuration - Update with your EC2 IP or localhost for local testing
-  API_URL: 'http://localhost:8080',  // Change to your EC2 IP: http://your-ec2-ip:8080
+  // API Configuration
+  API_URL: runtimeConfig?.apiUrl || 'http://localhost:8080',
   
   // OAuth Configuration
-  OAUTH_SIGN_IN_REDIRECT_URL: 'http://localhost:1234'
+  OAUTH_SIGN_IN_REDIRECT_URL: runtimeConfig?.redirectUrl || 'http://localhost:1234'
 };
+
+console.log('Config loaded:', config);

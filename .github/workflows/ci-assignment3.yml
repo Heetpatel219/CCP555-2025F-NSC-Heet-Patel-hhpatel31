@@ -1,0 +1,126 @@
+# .github/workflows/ci-assignment3.yml
+# Continuous Integration (CI) Workflow for Assignment 3
+
+name: Assignment 3 CI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'assignment 3/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'assignment 3/**'
+
+jobs:
+  # Job 1: Dockerfile Lint (Hadolint)
+  dockerfile-lint:
+    name: Assignment 3 - Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: "assignment 3/Dockerfile"
+
+  # Job 2: ESLint
+  lint:
+    name: Assignment 3 - ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: "assignment 3/package-lock.json"
+      - run: npm ci
+        working-directory: "assignment 3"
+      - run: npm run lint
+        working-directory: "assignment 3"
+
+  # Job 3: Unit Tests
+  unit-tests:
+    name: Assignment 3 - Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: "assignment 3/package-lock.json"
+      - run: npm ci
+        working-directory: "assignment 3"
+      - run: npm test
+        working-directory: "assignment 3"
+
+  # Job 4: Integration Tests (Docker Compose + Hurl)
+  integration-tests:
+    name: Assignment 3 - Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: "assignment 3/package-lock.json"
+      - run: npm install
+        working-directory: "assignment 3"
+      - name: Start services with Docker Compose
+        working-directory: "assignment 3"
+        run: docker compose up -d
+      - name: Setup local AWS resources
+        working-directory: "assignment 3"
+        run: |
+          chmod +x scripts/local-aws-setup.sh
+          ./scripts/local-aws-setup.sh
+      - name: Wait for services
+        working-directory: "assignment 3"
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:8080/ > /dev/null 2>&1; then
+              echo "Service is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+      - name: Install Hurl
+        run: |
+          curl --location --remote-name https://github.com/Orange-OpenSource/hurl/releases/download/4.3.0/hurl_4.3.0_amd64.deb
+          sudo apt install ./hurl_4.3.0_amd64.deb
+      - name: Run Integration Tests
+        working-directory: "assignment 3"
+        run: npm run test:integration
+      - name: Stop services
+        if: always()
+        working-directory: "assignment 3"
+        run: docker compose down
+
+  # Job 5: Build and Push to Docker Hub
+  docker-hub:
+    name: Assignment 3 - Build and Push to Docker Hub
+    needs: [lint, dockerfile-lint, unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        env:
+          DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/fragments
+          SHA_TAG: sha-${{ github.sha }}
+        with:
+          context: "assignment 3"
+          file: "assignment 3/Dockerfile"
+          push: true
+          tags: ${{ env.DOCKERHUB_REPO }}:${{ env.SHA_TAG }}, ${{ env.DOCKERHUB_REPO }}:main, ${{ env.DOCKERHUB_REPO }}:latest
+

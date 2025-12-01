@@ -2,40 +2,461 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Fragments UI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fragments UI - Assignment 3</title>
+    <!-- Runtime config (injected by Docker entrypoint in production) -->
+    <script src="/runtime-config.js"></script>
     <script type="module" src="./src/app.js"></script>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --danger: #dc2626;
+        --success: #16a34a;
+        --warning: #ca8a04;
+        --bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border: #e2e8f0;
+        --text: #1e293b;
+        --text-muted: #64748b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      h1 {
+        color: var(--primary);
+        margin-bottom: 20px;
+      }
+
+      h2, h3 {
+        color: var(--text);
+        margin-top: 0;
+      }
+
+      nav {
+        margin-bottom: 20px;
+      }
+
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: var(--border);
+        color: var(--text);
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .tab-btn {
+        padding: 10px 16px;
+        background: var(--card-bg);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .tab-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      input, textarea, select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid var(--border);
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+
+      input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: var(--primary);
+      }
+
+      label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 5px;
+        color: var(--text-muted);
+      }
+
+      .fragment-list {
+        display: grid;
+        gap: 15px;
+      }
+
+      .fragment-item {
+        background: var(--card-bg);
+        border: 2px solid var(--border);
+        border-radius: 10px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .fragment-item:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+      }
+
+      .fragment-item.selected {
+        border-color: var(--success);
+        background: #f0fdf4;
+      }
+
+      .fragment-id {
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--text-muted);
+        word-break: break-all;
+      }
+
+      .fragment-type {
+        display: inline-block;
+        padding: 2px 8px;
+        background: var(--primary);
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-top: 5px;
+      }
+
+      .fragment-size {
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 13px;
+      }
+
+      .status {
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-top: 10px;
+      }
+
+      .status.success {
+        background: #dcfce7;
+        color: var(--success);
+      }
+
+      .status.error {
+        background: #fee2e2;
+        color: var(--danger);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      @media (max-width: 768px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 2px 8px;
+        background: var(--warning);
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        margin: 2px;
+      }
+
+      .analytics-card {
+        text-align: center;
+        padding: 20px;
+      }
+
+      .analytics-value {
+        font-size: 36px;
+        font-weight: bold;
+        color: var(--primary);
+      }
+
+      .analytics-label {
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+    </style>
   </head>
   <body>
-    <h1>Fragments UI</h1>
+    <h1>🧩 Fragments UI - Assignment 3</h1>
+    
     <section>
       <nav>
-        <button id="login">Login</button>
-        <button id="logout">Logout</button>
+        <button id="login" class="btn-primary">Login with Cognito</button>
+        <button id="logout" class="btn-danger">Logout</button>
       </nav>
     </section>
+
     <section hidden id="user">
-      <h2>Hello <span class="username"></span>!</h2>
-      
-      <!-- Fragment Creation -->
-      <div id="create-fragment">
-        <h3>Create New Fragment</h3>
-        <label for="fragment-type">Content Type:</label>
-        <select id="fragment-type">
-          <option value="text/plain">Text Plain</option>
-          <option value="text/markdown">Markdown</option>
-          <option value="application/json">JSON</option>
-        </select>
-        <br><br>
-        <textarea id="fragment-content" placeholder="Enter your fragment content here..." rows="8" cols="60"></textarea>
-        <br><br>
-        <button id="create-btn">Create Fragment</button>
-        <div id="create-status"></div>
+      <div class="card">
+        <h2>Welcome, <span class="username"></span>!</h2>
       </div>
-      
-      <!-- Fragment List -->
-      <div id="fragments-list">
-        <h3>Your Fragments</h3>
-        <div id="fragments-container"></div>
+
+      <!-- Tabs Navigation -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="core">📝 Core Features</button>
+        <button class="tab-btn" data-tab="search">🔍 Search</button>
+        <button class="tab-btn" data-tab="tags">🏷️ Tags</button>
+        <button class="tab-btn" data-tab="sharing">🔗 Sharing</button>
+        <button class="tab-btn" data-tab="versions">📚 Versions</button>
+        <button class="tab-btn" data-tab="ai">🤖 AI Features</button>
+        <button class="tab-btn" data-tab="analytics">📊 Analytics</button>
+      </div>
+
+      <!-- Core Features Tab -->
+      <div class="tab-content active" id="tab-core">
+        <div class="grid-2">
+          <div class="card">
+            <h3>Create New Fragment</h3>
+            <label for="fragment-type">Content Type:</label>
+            <select id="fragment-type">
+              <option value="text/plain">Text Plain</option>
+              <option value="text/markdown">Markdown</option>
+              <option value="text/html">HTML</option>
+              <option value="application/json">JSON</option>
+              <option value="text/csv">CSV</option>
+            </select>
+            <label for="fragment-content">Content:</label>
+            <textarea id="fragment-content" placeholder="Enter your fragment content..." rows="6"></textarea>
+            <label for="image-upload">Or upload an image:</label>
+            <input type="file" id="image-upload" accept="image/png,image/jpeg,image/webp,image/gif,image/avif" />
+            <button id="create-btn" class="btn-success">Create Fragment</button>
+            <div id="create-status"></div>
+          </div>
+
+          <div class="card">
+            <h3>Update Fragment</h3>
+            <p>Selected: <strong id="selected-fragment-id">None</strong></p>
+            <p>Current Type: <span id="selected-fragment-type">-</span></p>
+            <label for="update-content">New Content:</label>
+            <textarea id="update-content" placeholder="Enter new content..." rows="4"></textarea>
+            <button id="update-btn" class="btn-primary" disabled>Update Fragment</button>
+            <button id="delete-btn" class="btn-danger" disabled>Delete Fragment</button>
+            <div id="update-status"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Your Fragments <button id="refresh-btn" class="btn-secondary">Refresh</button></h3>
+          <div id="fragments-container" class="fragment-list">
+            <p>Loading fragments...</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Fragment Data</h3>
+          <button id="load-data-btn" class="btn-primary" disabled>Load Selected Fragment Data</button>
+          <label for="convert-ext">Convert to:</label>
+          <select id="convert-ext">
+            <option value="">Original format</option>
+            <option value=".txt">Plain Text (.txt)</option>
+            <option value=".html">HTML (.html)</option>
+            <option value=".json">JSON (.json)</option>
+            <option value=".png">PNG (.png)</option>
+            <option value=".jpg">JPEG (.jpg)</option>
+            <option value=".webp">WebP (.webp)</option>
+            <option value=".gif">GIF (.gif)</option>
+          </select>
+          <div id="fragment-data-container"></div>
+        </div>
+      </div>
+
+      <!-- Search Tab -->
+      <div class="tab-content" id="tab-search">
+        <div class="card">
+          <h3>Search Fragments</h3>
+          <div class="grid-2">
+            <div>
+              <label for="search-type">Type:</label>
+              <input type="text" id="search-type" placeholder="e.g., text, image, json" />
+            </div>
+            <div>
+              <label for="search-tags">Tags (comma-separated):</label>
+              <input type="text" id="search-tags" placeholder="e.g., important, work" />
+            </div>
+            <div>
+              <label for="search-min-size">Min Size (bytes):</label>
+              <input type="number" id="search-min-size" min="0" />
+            </div>
+            <div>
+              <label for="search-max-size">Max Size (bytes):</label>
+              <input type="number" id="search-max-size" min="0" />
+            </div>
+          </div>
+          <button id="search-btn" class="btn-primary">Search</button>
+          <div id="search-results"></div>
+        </div>
+      </div>
+
+      <!-- Tags Tab -->
+      <div class="tab-content" id="tab-tags">
+        <div class="card">
+          <h3>Manage Tags</h3>
+          <p>Selected Fragment: <strong id="tags-fragment-id">None selected</strong></p>
+          <label for="current-tags">Current Tags:</label>
+          <div id="current-tags" style="margin-bottom: 15px;"><em>No tags</em></div>
+          <label for="new-tags">Add Tags (comma-separated):</label>
+          <input type="text" id="new-tags" placeholder="e.g., important, work, project-x" />
+          <button id="add-tags-btn" class="btn-success" disabled>Add Tags</button>
+          <button id="refresh-tags-btn" class="btn-secondary" disabled>Refresh Tags</button>
+          <div id="tags-status"></div>
+        </div>
+        <div class="card">
+          <h3>Auto-Tag Image (Amazon Rekognition)</h3>
+          <p>Select an image fragment to automatically detect and add labels as tags.</p>
+          <button id="auto-tag-btn" class="btn-primary" disabled>Auto-Tag with AI</button>
+          <div id="auto-tag-results"></div>
+        </div>
+      </div>
+
+      <!-- Sharing Tab -->
+      <div class="tab-content" id="tab-sharing">
+        <div class="card">
+          <h3>Share Fragment</h3>
+          <p>Selected Fragment: <strong id="share-fragment-id">None selected</strong></p>
+          <label for="share-email">Share with (email):</label>
+          <input type="email" id="share-email" placeholder="colleague@example.com" />
+          <button id="share-btn" class="btn-success" disabled>Share</button>
+          <button id="view-shares-btn" class="btn-secondary" disabled>View Current Shares</button>
+          <div id="share-status"></div>
+        </div>
+        <div class="card">
+          <h3>Shared With Me</h3>
+          <button id="load-shared-btn" class="btn-primary">Load Shared Fragments</button>
+          <div id="shared-fragments"></div>
+        </div>
+      </div>
+
+      <!-- Versions Tab -->
+      <div class="tab-content" id="tab-versions">
+        <div class="card">
+          <h3>Version History</h3>
+          <p>Selected Fragment: <strong id="versions-fragment-id">None selected</strong></p>
+          <button id="load-versions-btn" class="btn-primary" disabled>Load Versions</button>
+          <div id="versions-list"></div>
+        </div>
+      </div>
+
+      <!-- AI Features Tab -->
+      <div class="tab-content" id="tab-ai">
+        <div class="card">
+          <h3>🔤 Extract Text (Amazon Textract)</h3>
+          <p>Extract text from image fragments using OCR.</p>
+          <p>Selected Image: <strong id="textract-fragment-id">None selected (select an image fragment)</strong></p>
+          <button id="extract-text-btn" class="btn-primary" disabled>Extract Text</button>
+          <label>
+            <input type="checkbox" id="save-extracted" /> Save extracted text as new fragment
+          </label>
+          <div id="textract-results"></div>
+        </div>
+        <div class="card">
+          <h3>🏷️ Detect Labels (Amazon Rekognition)</h3>
+          <p>Detect objects and scenes in image fragments.</p>
+          <button id="detect-labels-btn" class="btn-primary" disabled>Detect Labels</button>
+          <label>
+            <input type="checkbox" id="auto-tag-labels" /> Automatically add labels as tags
+          </label>
+          <div id="rekognition-results"></div>
+        </div>
+      </div>
+
+      <!-- Analytics Tab -->
+      <div class="tab-content" id="tab-analytics">
+        <div class="card">
+          <h3>Overall Analytics</h3>
+          <button id="load-analytics-btn" class="btn-primary">Load Analytics</button>
+          <div id="analytics-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px;"></div>
+        </div>
+        <div class="card">
+          <h3>Fragment Analytics</h3>
+          <p>Selected Fragment: <strong id="analytics-fragment-id">None selected</strong></p>
+          <button id="load-fragment-analytics-btn" class="btn-secondary" disabled>Load Fragment Analytics</button>
+          <div id="fragment-analytics"></div>
+        </div>
       </div>
     </section>
   </body>
